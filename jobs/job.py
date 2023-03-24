@@ -54,11 +54,7 @@ class Job:
                 and (self.time_start + timedelta(seconds=self.time_since_start) > self.time_timeout)
             ):
                 logger.info("Превышено допустимое время выполнения")
-                if self.tries_left > 0:
-                    self.tries_left -= 1
-                    raise JobSoftReset()
-                else:
-                    raise StopIteration()
+                self.retry()
             func(*args, **kwargs)
         return inner
 
@@ -111,4 +107,10 @@ class Job:
         self.state = None
         self.is_finished = False
 
+    def retry(self):
+        if self.tries_left > 0:
+            self.tries_left -= 1
+            raise JobSoftReset()
+        else:
+            raise StopIteration()
 
