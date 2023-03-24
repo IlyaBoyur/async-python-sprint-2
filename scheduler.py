@@ -8,6 +8,8 @@ from job import Job
 logger = logging.Logger(__name__)
 
 
+ITER_SECS = 0.5
+
 class SingletonMeta(type):
     _instances = {}
     
@@ -85,7 +87,7 @@ class Scheduler(metaclass=SingletonMeta):
             with self.lock:
                 if len(self.tasks_active) == 0:
                     self.lock.release()
-                    time.sleep(0.5)
+                    time.sleep(ITER_SECS)
                     self.lock.acquire()
                     continue
                 # 1) run iteration in a job
@@ -106,4 +108,11 @@ class Scheduler(metaclass=SingletonMeta):
     @staticmethod
     def _process_job(job: Job):
         job.run()
-        
+
+    def join(self):
+        while True:
+            with self.lock:
+                if len(self.tasks_active) + len(self.tasks_wait) == 0:
+                    break
+            time.sleep(ITER_SECS)
+
