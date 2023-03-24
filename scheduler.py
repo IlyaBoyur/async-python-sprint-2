@@ -29,10 +29,11 @@ class Scheduler(metaclass=SingletonMeta):
 
     def schedule(self, task: Job):
         self._stop_event_loop()
-        if len(pool) < self.pool_size:
-            self.pool.append(task)
+        if len(tasks_active) + len(task.dependencies) < self.pool_size:
+            self.tasks_active.append(task)
+            self.tasks_active.extend(task.dependencies)
         else:
-            self.pool_wait.append(task)
+            self.tasks_wait.append(task)
         self._start_event_loop()
 
     def run(self):
@@ -82,12 +83,14 @@ class Scheduler(metaclass=SingletonMeta):
         current = 0
         while True:
             with self.lock:
-                if len(self.pool) == 0:
+                if len(self.tasks_active) == 0:
+                    self.lock.release()
                     time.sleep(0.5)
+                    self.lock.acquire()
                     continue
                 # 1) run iteration in a job
                     logger.info(f"event loop: iteration {current} started")
-                if not job.is_finished:    
+                if not job.is_finished:
                     self._process_job(self.pool[current])
                     logger.info(f"event loop: iteration {current} finished")
                 else:
