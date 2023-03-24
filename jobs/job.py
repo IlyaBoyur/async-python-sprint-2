@@ -84,7 +84,7 @@ class Job:
     @check_start_ready
     @check_timeout
     def target(self):
-        raise NotImplementedError("Метод Job.target() должен выполнять логику задачи")
+        raise NotImplementedError(f"Метод {self.__name__}.target() должен выполнять логику задачи")
 
     def stop(self):
         self.save_state()
@@ -110,6 +110,7 @@ class Job:
     def retry(self):
         if self.tries_left > 0:
             self.tries_left -= 1
+            logger.info(f"{self.__name__}: перезапуск. Осталось попыток: {self.tries_left}")
             raise JobSoftReset()
         else:
             raise StopIteration()

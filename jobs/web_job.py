@@ -27,6 +27,7 @@ class WebJob(Job):
             for url in self.urls:
                 response = requests.get(url)
                 response.raise_for_status()
+                logger.info(f"{response.status_code}: {response.content[:100]}")
                 yield response
         except requests.exceptions.HTTPError as error:
             logger.error(error)
