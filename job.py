@@ -28,7 +28,7 @@ class Job:
         self.start_at = start_at
         self.max_working_time = max_working_time
         self.tries = tries
-        self.dependencies = dependencies
+        self.dependencies = dependencies or []
         self.kwargs = kwargs
         # Prepare to run
         self.tries_left = self.tries
@@ -68,7 +68,7 @@ class Job:
             start = time.time()
             result = func(*args, **kwargs)
             timed = time.time() - start
-            logger.debug(f"Функция {func.__name__} выполнилась за {timed} секунд")
+            logger.debug(f"Функция {self.__name__}.{func.__name__} выполнилась за {timed} секунд")
             self.time_since_start += timed
             return result
         return inner
@@ -96,10 +96,10 @@ class Job:
 
     def save_state(self):
         self.state = dict(
-            start_at=self.start_at ,
+            start_at=self.start_at,
             max_working_time=self.max_working_time ,
             tries=self.tries,
-            dependencies=self.dependencies,
+            dependencies=self.dependencies or None,
             **self.kwargs,
         )
     
