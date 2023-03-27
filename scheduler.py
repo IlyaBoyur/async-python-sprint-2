@@ -3,7 +3,7 @@ import json
 import logging
 import time
 from threading import Lock, current_thread, Thread
-from jobs import Job
+from jobs import Job, JOB_TYPES
 
 
 logger = logging.Logger(__name__)
@@ -54,9 +54,15 @@ class Scheduler(metaclass=SingletonMeta):
         # stop event loop
         self._stop_event_loop()
         # restore waiting tasks
-        self.tasks_wait = [Job(**state) for state in waiting]
+        for state in [*waiting, *active[self.pool_size:]]:
+            job_type = state.get("job_type")
+            JobKlass = JOB_TYPES.get(job_type, Job)
+            self.tasks_wait.append(JobKlass(**state))
         # restore active tasks
-        self.tasks_active = [Job(**state) for state in active[:self.pool_size]]
+        for state in active[:self.pool_size]:
+            job_type = state.get("job_type")
+            JobKlass = JOB_TYPES.get(job_type, Job)
+            self.tasks_active.append(JobKlass(**state))
         # start event loop
         self._start_event_loop()
 
@@ -79,6 +85,9 @@ class Scheduler(metaclass=SingletonMeta):
             # pickle.dump(waiting, file)
             # pickle.dump(active, file)
             json.dump(data, file)
+        # remove tasks
+        self.tasks_wait = []
+        self.tasks_active = []
 
     def _start_event_loop(self):
         if not self.event_loop_started:

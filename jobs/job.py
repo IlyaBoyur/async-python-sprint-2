@@ -126,5 +126,21 @@ class Job:
 class EmptyJob(Job):
     """Empty Job which does nothing"""
 
+    def save_state(self):
+        super().save_state()
+        self.state["job_type"] = "empty_job"
+
     def target(self):
         yield
+
+
+class InfiniteJob(Job):
+    """Empty Job which iterates infinitely"""
+
+    def save_state(self):
+        super().save_state()
+        self.state["job_type"] = "infinite_job"
+
+    def target(self):
+        while True:
+            yield
