@@ -21,7 +21,7 @@ class SingletonMeta(type):
 
 class Scheduler(metaclass=SingletonMeta):
     def __init__(self, *, pool_size:int=10, lockfile:str="scheduler.lock"):
-        self.tasks_active = []
+        self.tasks_active = [] * pool_size
         self.pool_size = pool_size
         self.tasks_wait = []
         self.lockfile = lockfile
