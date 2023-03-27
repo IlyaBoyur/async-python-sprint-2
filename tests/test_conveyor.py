@@ -4,55 +4,48 @@ from scheduler import Scheduler
 import queue
 import json
 import os
-from typing import Callable, Any
+from typing import Callable, Any, List
 
 
-class SourceJob(Job):
-    def __init__(self, queue: queue.Queue):
+class PassableTargetJob(Job):
+    def __init__(self, target: Callable=None, args: List[Any]=None, **kwargs):
+        self.new_target = target
+        self.args = args
         super().__init__()
         self.queue = queue
-
+    
     def target(self):
-        for step in range(10):
-            self.queue.put(step)
+        return self.new_target(*self.args)
+
+
+def source(queue_out):
+    for step in range(10):
+        queue_out.put(step)
+        yield
+
+
+def processor(queue_in, queue_out, func):
+    while True:
+        try:
+            item = queue_in.get_nowait()
+        except queue.Empty:
+            break
+        else:
+            item = func(item)
+            queue_out.put(item)
             yield
 
 
-class ProcessorJob(Job):
-    def __init__(self, queue_in: queue.Queue, queue_out: queue.Queue, func: Callable[[Any],Any]):
-        super().__init__()
-        self.queue_in = queue_in
-        self.queue_out = queue_out
-        self.func = func
-
-    def target(self):
-        while True:
-            try:
-                item = self.queue_in.get_nowait()
-            except queue.Empty:
-                break
-            else:
-                item = self.func(item)
-                self.queue_out.put(item)
-                yield
-
-
-class TargetJob(Job):
-    def __init__(self, queue: queue.Queue, outfile: str):
-        super().__init__()
-        self.queue = queue
-        self.outfile = outfile
-
-    def target(self):
-        while True:
-            try:
-                item = self.queue.get_nowait()
-            except queue.Empty:
-                break
-            else:
-                with open(self.outfile, "a") as file:
-                    file.write(f"{item}\n")
-                yield
+def target(queue_in, outfile):
+    while True:
+        try:
+            item = queue_in.get_nowait()
+        except queue.Empty:
+            break
+        else:
+            with open(outfile, "a") as file:
+                file.write(f"{item}\n")
+            yield
 
 
 class TestConveyorJob:
@@ -71,9 +64,9 @@ class TestConveyorJob:
         scheduler = Scheduler()
         scheduler.run()
         for job in [
-            SourceJob(queue=queue_in),
-            ProcessorJob(queue_in=queue_in, queue_out=queue_out, func=lambda x: x ** 2),
-            TargetJob(queue=queue_out, outfile=self.TEST_FILE)
+            PassableTargetJob(target=source, args=(queue_in,)),
+            PassableTargetJob(target=processor, args=(queue_in, queue_out, lambda x: x ** 2)),
+            PassableTargetJob(target=target, args=(queue_out, self.TEST_FILE))
         ]:
             scheduler.schedule(job)
         scheduler.join()
