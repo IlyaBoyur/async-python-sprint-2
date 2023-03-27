@@ -69,7 +69,22 @@ class Job:
             return result
         return inner
 
+    def run(self):
+        try:
+            if not self.is_finished:
+                self._iter_job()
+        except JobSoftReset:
+            self.soft_reset()
+        except StopIteration:
+            self.is_finished = True
+        finally:
+            self.save_state()
 
+    @timeit
+    @check_start_ready
+    @check_timeout
+    def _iter_job(self):
+        self.coro.send(None)
 
     def target(self):
         raise NotImplementedError(f"Метод {self.__class__}.target() должен выполнять логику задачи")
