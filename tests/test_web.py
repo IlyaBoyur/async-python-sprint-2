@@ -5,7 +5,6 @@ from queue import Queue
 
 
 class TestWebJob:
-    @pytest.mark.skip
     def test_default(self):
         job = WebJob(max_working_time=3)
         scheduler = Scheduler(pool_size=3)
@@ -13,7 +12,6 @@ class TestWebJob:
         scheduler.schedule(job)
         scheduler.join()
 
-    @pytest.mark.skip
     def test_logging(self):
         import logging
 
