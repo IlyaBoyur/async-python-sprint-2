@@ -3,7 +3,7 @@ from jobs import InfiniteJob
 from scheduler import Scheduler
 from queue import Queue
 import json
-
+import time
 
 class TestSchedulerCommon:
     @pytest.fixture
@@ -53,3 +53,12 @@ class TestSchedulerCommon:
         scheduler_other = Scheduler()
 
         assert id(scheduler) == id(scheduler_other)
+
+    def test_max_working_time(self, clear):
+        jobs = [InfiniteJob(max_working_time=0.1) for _ in range(3)]
+        scheduler = Scheduler(pool_size=len(jobs))
+        scheduler.run()
+        [scheduler.schedule(job) for job in jobs]
+
+        scheduler.join()
+        assert len(scheduler.tasks_active) == 0
