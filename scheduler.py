@@ -10,6 +10,7 @@ logger = logging.Logger(__name__)
 
 ITER_SECS = 0.5
 
+
 class SingletonMeta(type):
     _instances = {}
     
@@ -21,7 +22,7 @@ class SingletonMeta(type):
 
 class Scheduler(metaclass=SingletonMeta):
     def __init__(self, *, pool_size:int=10, lockfile:str="scheduler.lock"):
-        self.tasks_active = [] * pool_size
+        self.tasks_active = []
         self.pool_size = pool_size
         self.tasks_wait = []
         self.lockfile = lockfile
@@ -32,9 +33,10 @@ class Scheduler(metaclass=SingletonMeta):
     def schedule(self, task: Job):
         self._stop_event_loop()
         if len(self.tasks_active) + len(task.dependencies) < self.pool_size:
-            self.tasks_active.append(task)
             self.tasks_active.extend(task.dependencies)
+            self.tasks_active.append(task)
         else:
+            self.tasks_wait.extend(task.dependencies)
             self.tasks_wait.append(task)
         self._start_event_loop()
 
@@ -92,19 +94,20 @@ class Scheduler(metaclass=SingletonMeta):
                     self.lock.acquire()
                     continue
                 # 1) run iteration in a job
-                job=self.tasks_active[current]
+                job = self.tasks_active[current]
                 if not job.is_finished:
-                    logger.info(f"event loop: iteration for job {current} started")
+                    logger.info(f"event loop: iteration for job {job} started")
                     self._process_job(job)
-                    logger.info(f"event loop: iteration for job {current} finished")
+                    logger.info(f"event loop: iteration for job {job} finished")
                 else:
                 # 2) if job is done - remove job and add job from wait list
-                    logger.info(f"event loop: job {current} finished")
+                    logger.info(f"event loop: job {job} finished")
                     self.tasks_active.pop(current)
-                    if len(self.tasks_wait) > 0:
+                    if len(self.tasks_active) < self.pool_size and len(self.tasks_wait) > 0:
                         self.tasks_active.append(self.tasks_wait.pop())
                 # extend cursor
-                current = (current + 1) % self.pool_size
+                active = len(self.tasks_active)
+                scurrent = (current + 1) % active if active > 0 else 0
 
 
     @staticmethod
