@@ -92,7 +92,8 @@ class Scheduler(metaclass=SingletonMeta):
                     self.lock.acquire()
                     continue
                 # 1) run iteration in a job
-                if not (job:=self.tasks_active[current].is_finished):
+                job=self.tasks_active[current]
+                if not job.is_finished:
                     logger.info(f"event loop: iteration for job {current} started")
                     self._process_job(job)
                     logger.info(f"event loop: iteration for job {current} finished")
