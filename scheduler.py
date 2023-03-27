@@ -1,4 +1,5 @@
 import pickle
+import json
 import logging
 import time
 from threading import Lock, current_thread, Thread
@@ -45,8 +46,11 @@ class Scheduler(metaclass=SingletonMeta):
 
     def restart(self):
         # read task states
-        with open(self.lockfile, "rb") as file:
-            waiting, active = pickle.load(file)
+        with open(self.lockfile, "r") as file:
+            # waiting, active = pickle.load(file)
+            data = json.load(file)
+        active = data.get("active", [])
+        waiting =  data.get("waiting", [])
         # stop event loop
         self._stop_event_loop()
         # restore waiting tasks
@@ -67,9 +71,11 @@ class Scheduler(metaclass=SingletonMeta):
         # save tasks state
         active = [task.state for task in self.tasks_active]
         # write task states
-        with open(self.lockfile, "wb") as file:
-            pickle.dump(waiting, file)
-            pickle.dump(active, file)
+        data = {"active": active, "waiting": waiting}
+        with open(self.lockfile, "w") as file:
+            # pickle.dump(waiting, file)
+            # pickle.dump(active, file)
+            json.dump(data, file)
 
     def _start_event_loop(self):
         if not self.event_loop_started:
