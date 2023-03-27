@@ -1,9 +1,10 @@
+import json
+
 import pytest
+
 from jobs import InfiniteJob
 from scheduler import Scheduler
-from queue import Queue
-import json
-import time
+
 
 class TestSchedulerCommon:
     @pytest.fixture
@@ -47,7 +48,7 @@ class TestSchedulerCommon:
 
         assert len(scheduler.tasks_active) == active_jobs_count
         assert len(scheduler.tasks_wait) == 0
-    
+
     def test_singleton(self, clear):
         scheduler = Scheduler()
         scheduler_other = Scheduler()

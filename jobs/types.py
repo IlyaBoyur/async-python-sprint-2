@@ -1,4 +1,4 @@
-from . import FileJob, SystemJob, WebJob, EmptyJob, InfiniteJob
+from . import EmptyJob, FileJob, InfiniteJob, SystemJob, WebJob
 
 JOB_TYPES = {
     "file_job": FileJob,

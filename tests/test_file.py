@@ -1,9 +1,10 @@
+import os
+from queue import Queue
+
 import pytest
+
 from jobs import FileJob
 from scheduler import Scheduler
-from queue import Queue
-import json
-import os
 
 
 class TestFileJob:
@@ -28,10 +29,9 @@ class TestFileJob:
         job = FileJob(max_working_time=3, actions=[["w", "file.txt"]], queue=queue)
         scheduler.schedule(job)
         scheduler.join()
-        
+
         with open("file.txt", "r") as file:
             assert file.read() == "test_write"
-
 
     def test_read(self, clear, clear_files):
         with open("file.txt", "w") as file:
@@ -43,6 +43,5 @@ class TestFileJob:
         job = FileJob(max_working_time=3, actions=[["r", "file.txt"]], queue=queue)
         scheduler.schedule(job)
         scheduler.join()
-        
-        assert queue.get() == "test_read"
 
+        assert queue.get() == "test_read"

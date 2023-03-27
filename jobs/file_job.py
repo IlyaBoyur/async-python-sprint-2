@@ -1,15 +1,21 @@
-from .job import Job
-from typing import List, Tuple, Any
-import os
 import logging
+import os
 from queue import Queue
+from typing import Any, List, Tuple
 
+from .job import Job
 
 logger = logging.getLogger(__name__)
 
 
 class FileJob(Job):
-    def __init__(self, actions: List[Tuple[str, str, Any]], queue: Queue, *args, **kwargs):
+    def __init__(
+        self,
+        actions: List[Tuple[str, str, Any]],
+        queue: Queue,
+        *args,
+        **kwargs,
+    ):
         super().__init__(*args, **kwargs)
         self.actions = actions
         self.queue = queue
@@ -27,7 +33,9 @@ class FileJob(Job):
                             file.write(self.queue.get())
                 elif filemode == "r":
                     if not os.path.exists(filename):
-                        raise RuntimeError(f"Невозможно прочитать файл {filename}: файл отсутствует")
+                        raise RuntimeError(
+                            f"Невозможно прочитать файл {filename}: файл отсутствует"
+                        )
                     with open(file=filename, mode=filemode) as file:
                         self.queue.put(file.read())
                 else:
@@ -35,4 +43,3 @@ class FileJob(Job):
             except RuntimeError as error:
                 logger.error(error)
             yield
-            

@@ -1,8 +1,9 @@
-import pytest
-from jobs import WebJob
-from scheduler import Scheduler
 from queue import Queue
 
+import pytest
+
+from jobs import WebJob
+from scheduler import Scheduler
 
 URLS_DEFAULT = [
     "https://google.com/",
@@ -52,7 +53,7 @@ class TestWebJob:
 
         size = test_queue.qsize()
         assert size == len(CITIES)
-        responses = [json.loads(test_queue.get())  for i in range(len(CITIES))]
+        responses = [json.loads(test_queue.get()) for i in range(len(CITIES))]
         for response in responses:
             assert "info" in response
             assert "geo_object" in response

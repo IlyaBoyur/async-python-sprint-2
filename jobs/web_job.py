@@ -1,15 +1,18 @@
-import requests
-from .job import Job
-from typing import List
 import logging
 from queue import Queue
+from typing import List
 
+import requests
+
+from .job import Job
 
 logger = logging.getLogger(__name__)
 
 
 class WebJob(Job):
-    def __init__(self, urls:List[str]=None, queue: Queue=None, *args, **kwargs):
+    def __init__(
+        self, urls: List[str] = None, queue: Queue = None, *args, **kwargs
+    ):
         super().__init__(*args, **kwargs)
         self.urls = urls or []
         self.queue = queue
@@ -23,7 +26,9 @@ class WebJob(Job):
             for url in self.urls:
                 response = requests.get(url)
                 response.raise_for_status()
-                logger.info(f"{response.status_code}: {response.content[:100]}")
+                logger.info(
+                    f"{response.status_code}: {response.content[:100]}"
+                )
                 if self.queue is not None:
                     self.queue.put(response.content)
                 yield response

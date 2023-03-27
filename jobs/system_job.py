@@ -1,8 +1,8 @@
-from .job import Job
-from typing import List, Tuple, Any
-import os
-import pathlib
 import logging
+import pathlib
+from typing import Any, List
+
+from .job import Job
 
 
 class SystemAction:
@@ -42,7 +42,7 @@ class SystemJob(Job):
                     source.unlink(missing_ok=True)
                 elif action == SystemAction.MOVE:
                     if not target:
-                        raise RuntimeError("Отсутсвует путь назначения")
+                        raise RuntimeError("Отсутствует путь назначения")
                     target, *_ = target
                     source = pathlib.Path(source)
                     source.rename(target)

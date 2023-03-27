@@ -1,9 +1,9 @@
-import pytest
-from jobs import SystemJob, SystemAction
-from scheduler import Scheduler
-from queue import Queue
-import json
 import pathlib
+
+import pytest
+
+from jobs import SystemAction, SystemJob
+from scheduler import Scheduler
 
 
 class TestSystemJob:
@@ -24,7 +24,7 @@ class TestSystemJob:
             root / "file.txt",
             root / "new_file.txt",
             root / "folder/file",
-            root / "folder/folder/file"
+            root / "folder/folder/file",
         ]
         [path.unlink() for path in files if path.exists()]
         folders = [

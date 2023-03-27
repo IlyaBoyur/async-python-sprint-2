@@ -1,10 +1,9 @@
-import pickle
 import json
 import logging
 import time
-from threading import Lock, current_thread, Thread
-from jobs import Job, JOB_TYPES
+from threading import Lock, Thread
 
+from jobs import JOB_TYPES, Job
 
 logger = logging.Logger(__name__)
 
@@ -14,22 +13,25 @@ ITER_SECS = 0.5
 
 class SingletonMeta(type):
     _instances = {}
-    
+
     def __call__(cls, *args, **kwargs):
         if cls not in cls._instances:
-            cls._instances[cls] = super(SingletonMeta, cls).__call__(*args, **kwargs)
+            cls._instances[cls] = super(SingletonMeta, cls).__call__(
+                *args, **kwargs
+            )
         return cls._instances[cls]
 
 
 class Scheduler(metaclass=SingletonMeta):
-    def __init__(self, *, pool_size:int=10, lockfile:str="scheduler.lock"):
+    def __init__(
+        self, *, pool_size: int = 10, lockfile: str = "scheduler.lock"
+    ):
         self.tasks_active = []
         self.pool_size = pool_size
         self.tasks_wait = []
         self.lockfile = lockfile
         self.lock = Lock()
         self.event_loop_started = False
-
 
     def schedule(self, task: Job):
         self._stop_event_loop()
@@ -50,16 +52,16 @@ class Scheduler(metaclass=SingletonMeta):
             # waiting, active = pickle.load(file)
             data = json.load(file)
         active = data.get("active", [])
-        waiting =  data.get("waiting", [])
+        waiting = data.get("waiting", [])
         # stop event loop
         self._stop_event_loop()
         # restore waiting tasks
-        for state in [*waiting, *active[self.pool_size:]]:
+        for state in [*waiting, *active[self.pool_size :]]:
             job_type = state.get("job_type")
             JobKlass = JOB_TYPES.get(job_type, Job)
             self.tasks_wait.append(JobKlass(**state))
         # restore active tasks
-        for state in active[:self.pool_size]:
+        for state in active[: self.pool_size]:
             job_type = state.get("job_type")
             JobKlass = JOB_TYPES.get(job_type, Job)
             self.tasks_active.append(JobKlass(**state))
@@ -116,17 +118,21 @@ class Scheduler(metaclass=SingletonMeta):
                 if not job.is_finished:
                     logger.info(f"event loop: iteration for job {job} started")
                     self._process_job(job)
-                    logger.info(f"event loop: iteration for job {job} finished")
+                    logger.info(
+                        f"event loop: iteration for job {job} finished"
+                    )
                 else:
-                # 2) if job is done - remove job and add job from wait list
+                    # 2) if job is done - remove job and add job from wait list
                     logger.info(f"event loop: job {job} finished")
                     self.tasks_active.pop(current)
-                    if len(self.tasks_active) < self.pool_size and len(self.tasks_wait) > 0:
+                    if (
+                        len(self.tasks_active) < self.pool_size
+                        and len(self.tasks_wait) > 0
+                    ):
                         self.tasks_active.append(self.tasks_wait.pop())
                 # extend cursor
                 active = len(self.tasks_active)
-                scurrent = (current + 1) % active if active > 0 else 0
-
+                current = (current + 1) % active if active > 0 else 0
 
     @staticmethod
     def _process_job(job: Job):
@@ -138,4 +144,3 @@ class Scheduler(metaclass=SingletonMeta):
                 if len(self.tasks_active) + len(self.tasks_wait) == 0:
                     break
             time.sleep(ITER_SECS)
-
