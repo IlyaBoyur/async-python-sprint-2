@@ -118,3 +118,8 @@ class Job:
         else:
             raise StopIteration()
 
+
+class EmptyJob(Job):
+    """Empty Job which does nothing"""
+    def target(self):
+        pass
