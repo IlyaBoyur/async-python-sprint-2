@@ -60,6 +60,9 @@ class Scheduler(metaclass=SingletonMeta):
         # start event loop
         self._start_event_loop()
 
+    def pause(self):
+        self._stop_event_loop()
+
     def stop(self):
         # stop event loop
         self._stop_event_loop()
