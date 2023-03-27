@@ -2,31 +2,34 @@ from .job import Job
 from typing import List, Tuple, Any
 import os
 import logging
+from queue import Queue
 
 
 logger = logging.getLogger(__name__)
 
 
 class FileJob(Job):
-    def __init__(self, actions: List[Tuple[str, str, Any]], *args, **kwargs):
+    def __init__(self, actions: List[Tuple[str, str, Any]], queue: Queue, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.actions = actions
+        self.queue = queue
 
     def save_state(self):
         super().save_state()
         self.state["job_type"] = "file_job"
 
     def target(self):
-        for filemode, file, target in self.actions:
+        for filemode, filename in self.actions:
             try:
-                if filemode == "w":
-                    with open(file=file, mode=filemode) as file:
-                        file.write(target)
+                if filemode in ("w", "a"):
+                    with open(file=filename, mode=filemode) as file:
+                        if not self.queue.empty():
+                            file.write(self.queue.get())
                 elif filemode == "r":
-                    if not os.path.exists(file):
-                        raise RuntimeError(f"Невозможно прочитать файл {file}: файл отсутствует")
-                    with open(file=file, mode=filemode) as file:
-                        target[0] = file.read()
+                    if not os.path.exists(filename):
+                        raise RuntimeError(f"Невозможно прочитать файл {filename}: файл отсутствует")
+                    with open(file=filename, mode=filemode) as file:
+                        self.queue.put(file.read())
                 else:
                     logger.warning("Режим не поддерживается")
             except RuntimeError as error:
