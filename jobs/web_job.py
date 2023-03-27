@@ -14,6 +14,10 @@ class WebJob(Job):
         self.urls = urls or []
         self.queue = queue
 
+    def save_state(self):
+        super().save_state()
+        self.state["job_type"] = "web_job"
+
     def target(self):
         try:
             for url in self.urls:

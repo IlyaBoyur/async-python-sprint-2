@@ -12,6 +12,10 @@ class FileJob(Job):
         super().__init__(*args, **kwargs)
         self.actions = actions
 
+    def save_state(self):
+        super().save_state()
+        self.state["job_type"] = "file_job"
+
     def target(self):
         for filemode, file, target in self.actions:
             try:

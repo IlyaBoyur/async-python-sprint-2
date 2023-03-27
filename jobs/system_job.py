@@ -20,6 +20,10 @@ class SystemJob(Job):
         super().__init__(*args, **kwargs)
         self.actions = actions
 
+    def save_state(self):
+        super().save_state()
+        self.state["job_type"] = "system_job"
+
     def target(self):
         try:
             for action, *paths in self.actions:
@@ -43,7 +47,5 @@ class SystemJob(Job):
                     source = pathlib.Path(source)
                     source.rename(target)
                 yield
-        # except IsADirectoryError as error:
-            # logger.error(error)
         except RuntimeError as error:
             logger.error(error)
