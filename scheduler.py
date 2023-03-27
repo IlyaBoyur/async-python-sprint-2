@@ -2,7 +2,7 @@ import pickle
 import logging
 import time
 from threading import Lock, current_thread, Thread
-from job import Job
+from jobs import Job
 
 
 logger = logging.Logger(__name__)
@@ -31,7 +31,7 @@ class Scheduler(metaclass=SingletonMeta):
 
     def schedule(self, task: Job):
         self._stop_event_loop()
-        if len(tasks_active) + len(task.dependencies) < self.pool_size:
+        if len(self.tasks_active) + len(task.dependencies) < self.pool_size:
             self.tasks_active.append(task)
             self.tasks_active.extend(task.dependencies)
         else:
@@ -69,14 +69,15 @@ class Scheduler(metaclass=SingletonMeta):
             pickle.dump(waiting, file)
             pickle.dump(active, file)
 
-    def _start_event_loop():
+    def _start_event_loop(self):
         if not self.event_loop_started:
             thread = Thread(target=self._event_loop, daemon=True)
             thread.start()
             self.event_loop_started = True
-        self.lock.release()
+        if self.lock.locked():
+            self.lock.release()
 
-    def _stop_event_loop():
+    def _stop_event_loop(self):
         if not self.lock.locked():
             self.lock.acquire()
 
@@ -91,8 +92,8 @@ class Scheduler(metaclass=SingletonMeta):
                     self.lock.acquire()
                     continue
                 # 1) run iteration in a job
-                    logger.info(f"event loop: iteration {current} started")
                 if not job.is_finished:
+                    logger.info(f"event loop: iteration {current} started")
                     self._process_job(self.pool[current])
                     logger.info(f"event loop: iteration {current} finished")
                 else:
