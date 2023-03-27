@@ -44,10 +44,8 @@ class TestWebJob:
 
         size = test_queue.qsize()
         assert size == len(CITIES)
-        result = []
-        result.extend(json.loads(test_queue.get())  for i in range(len(CITIES)))
-            
-        for response in result:
+        responses = [json.loads(test_queue.get())  for i in range(len(CITIES))]
+        for response in responses:
             assert "info" in response
             assert "geo_object" in response
             assert "fact" in response
