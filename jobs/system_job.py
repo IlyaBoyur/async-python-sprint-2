@@ -46,6 +46,8 @@ class SystemJob(Job):
                     target, *_ = target
                     source = pathlib.Path(source)
                     source.rename(target)
+                else:
+                    pass
                 yield
         except RuntimeError as error:
             logger.error(error)
