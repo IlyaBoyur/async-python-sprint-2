@@ -22,7 +22,7 @@ class Job:
                  start_at: Optional[datetime]=None,
                  max_working_time: int=-1,
                  tries: int=0,
-                 dependencies: List[Job]=None,
+                 dependencies: List["Job"]=None,
                  **kwargs):
         
         self.start_at = start_at
@@ -43,7 +43,7 @@ class Job:
         def inner(self, *args, **kwargs):
             if self.now() < self.time_start or not all(job.is_finished for job in self.dependencies):
                 raise JobNotReady()
-            func(*args, **kwargs)
+            func(self, *args, **kwargs)
         return inner
 
     @staticmethod
@@ -55,36 +55,24 @@ class Job:
             ):
                 logger.info("Превышено допустимое время выполнения")
                 self.retry()
-            func(*args, **kwargs)
+            func(self, *args, **kwargs)
         return inner
 
     @staticmethod
     def timeit(func):
         def inner(self, *args, **kwargs):
             start = time.time()
-            result = func(*args, **kwargs)
+            result = func(self, *args, **kwargs)
             timed = time.time() - start
-            logger.debug(f"Функция {self.__name__}.{func.__name__} выполнилась за {timed} секунд")
+            logger.debug(f"Функция {self.__class__}.{func.__name__} выполнилась за {timed} секунд")
             self.time_since_start += timed
             return result
         return inner
 
-    @timeit
-    def run(self):
-        try:
-            if not self.is_finished:
-                self.coro.send(None)
-        except JobSoftReset():
-            self.soft_reset()
-        except StopIteration():
-            self.is_finished = True
-        finally:
-            self.save_state()
 
-    @check_start_ready
-    @check_timeout
+
     def target(self):
-        raise NotImplementedError(f"Метод {self.__name__}.target() должен выполнять логику задачи")
+        raise NotImplementedError(f"Метод {self.__class__}.target() должен выполнять логику задачи")
 
     def stop(self):
         self.save_state()
@@ -110,7 +98,7 @@ class Job:
     def retry(self):
         if self.tries_left > 0:
             self.tries_left -= 1
-            logger.info(f"{self.__name__}: перезапуск. Осталось попыток: {self.tries_left}")
+            logger.info(f"{self.__class__}: перезапуск. Осталось попыток: {self.tries_left}")
             raise JobSoftReset()
         else:
             raise StopIteration()
