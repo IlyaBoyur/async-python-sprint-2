@@ -1,12 +1,21 @@
 import pytest
-from jobs import WebJob, URLS_DEFAULT
+from jobs import WebJob
 from scheduler import Scheduler
 from queue import Queue
 
 
+URLS_DEFAULT = [
+    "https://google.com/",
+    "https://ya.ru/",
+    "https://www.rambler.ru/",
+    "https://www.yahoo.com/",
+    "https://www.bing.com/",
+]
+
+
 class TestWebJob:
     def test_default(self):
-        job = WebJob(max_working_time=3)
+        job = WebJob(max_working_time=3, urls=URLS_DEFAULT)
         scheduler = Scheduler(pool_size=3)
         scheduler.run()
         scheduler.schedule(job)
@@ -22,10 +31,9 @@ class TestWebJob:
         )
         scheduler = Scheduler(pool_size=3)
         scheduler.run()
-        job = WebJob(max_working_time=3)
+        job = WebJob(max_working_time=3, urls=URLS_DEFAULT)
         scheduler.schedule(job)
         scheduler.join()
-
 
     def test_queue(self):
         import json

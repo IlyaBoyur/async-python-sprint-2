@@ -5,22 +5,13 @@ import logging
 from queue import Queue
 
 
-URLS_DEFAULT = [
-    "https://google.com/",
-    "https://ya.ru/",
-    "https://www.rambler.ru/",
-    "https://www.yahoo.com/",
-    "https://www.bing.com/",
-]
-
-
 logger = logging.getLogger(__name__)
 
 
 class WebJob(Job):
-    def __init__(self, urls:List[str]=URLS_DEFAULT, queue: Queue=None, *args, **kwargs):
+    def __init__(self, urls:List[str]=None, queue: Queue=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.urls = urls
+        self.urls = urls or []
         self.queue = queue
 
     def target(self):
