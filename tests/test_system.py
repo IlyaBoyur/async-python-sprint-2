@@ -23,7 +23,8 @@ class TestSystemJob:
         files = [
             root / "file.txt",
             root / "new_file.txt",
-            root / "folder/file"
+            root / "folder/file",
+            root / "folder/folder/file"
         ]
         [path.unlink() for path in files if path.exists()]
         folders = [
