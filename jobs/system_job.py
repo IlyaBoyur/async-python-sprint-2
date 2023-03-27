@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 class SystemJob(Job):
     def __init__(self, actions: List[List[Any]], *args, **kwargs):
-        super().__init__()
+        super().__init__(*args, **kwargs)
         self.actions = actions
 
     def target(self):
