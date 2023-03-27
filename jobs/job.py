@@ -9,14 +9,18 @@ logger = logging.getLogger(__name__)
 
 
 class JobSoftReset(RuntimeError):
+    """Job is reset because of internal error"""
     pass
 
 
 class JobNotReady(RuntimeError):
+    """Job is scheduled but it is not ready to start"""
     pass
 
 
 class Job:
+    """Job prototype"""
+
     def __init__(self,
                  *,
                  start_at: Optional[datetime]=None,
@@ -121,5 +125,6 @@ class Job:
 
 class EmptyJob(Job):
     """Empty Job which does nothing"""
+
     def target(self):
         pass
