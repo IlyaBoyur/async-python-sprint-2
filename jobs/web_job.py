@@ -1,6 +1,5 @@
 import logging
 from queue import Queue
-from typing import List
 
 import requests
 
@@ -11,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 class WebJob(Job):
     def __init__(
-        self, urls: List[str] = None, queue: Queue = None, *args, **kwargs
+        self, urls: list[str] = None, queue: Queue = None, *args, **kwargs
     ):
         super().__init__(*args, **kwargs)
         self.urls = urls or []

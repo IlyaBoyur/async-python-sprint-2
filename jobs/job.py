@@ -1,7 +1,7 @@
 import logging
 import time
 from datetime import datetime, timedelta
-from typing import List, Optional, Self
+from typing import Self
 
 import pytz
 
@@ -26,10 +26,10 @@ class Job:
     def __init__(
         self,
         *,
-        start_at: Optional[datetime] = None,
+        start_at: datetime | None = None,
         max_working_time: int = -1,
         tries: int = 0,
-        dependencies: List[Self] = None,
+        dependencies: list[Self] = None,
         **kwargs,
     ):
 

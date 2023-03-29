@@ -1,6 +1,6 @@
 import logging
 import pathlib
-from typing import Any, List
+from typing import Any
 
 from .job import Job
 
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 class SystemJob(Job):
-    def __init__(self, actions: List[List[Any]], *args, **kwargs):
+    def __init__(self, actions: list[list[Any]], *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.actions = actions
 

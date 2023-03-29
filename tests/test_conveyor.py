@@ -1,7 +1,6 @@
-import json
 import os
 import queue
-from typing import Any, Callable, List
+from typing import Any, Callable
 
 import pytest
 
@@ -10,7 +9,7 @@ from scheduler import Scheduler
 
 
 class PassableTargetJob(Job):
-    def __init__(self, target: Callable = None, args: List[Any] = None, **kwargs):
+    def __init__(self, target: Callable = None, args: list[Any] = None, **kwargs):
         self.new_target = target
         self.args = args
         super().__init__(**kwargs)
