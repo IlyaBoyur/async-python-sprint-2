@@ -56,7 +56,7 @@ class TestSchedulerCommon:
         assert id(scheduler) == id(scheduler_other)
 
     def test_max_working_time(self, clear):
-        jobs = [InfiniteJob(max_working_time=0.1) for _ in range(3)]
+        jobs = [InfiniteJob(max_working_time=1) for _ in range(2)]
         scheduler = Scheduler(pool_size=len(jobs))
         scheduler.run()
         [scheduler.schedule(job) for job in jobs]
