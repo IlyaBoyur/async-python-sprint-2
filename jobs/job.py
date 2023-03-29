@@ -136,8 +136,7 @@ class Job:
                 f"{self.__class__}: restart. Tries left: {self.tries_left}"
             )
             raise JobSoftReset()
-        else:
-            raise StopIteration()
+        raise StopIteration()
 
 
 class EmptyJob(Job):
