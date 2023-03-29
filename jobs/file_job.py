@@ -34,7 +34,7 @@ class FileJob(Job):
                 elif filemode == "r":
                     if not os.path.exists(filename):
                         raise RuntimeError(
-                            f"Невозможно прочитать файл {filename}: файл отсутствует"
+                            f"Cannot read file {filename}: the file is missing"
                         )
                     with open(file=filename, mode=filemode) as file:
                         self.queue.put(file.read())

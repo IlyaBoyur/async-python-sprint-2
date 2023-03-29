@@ -103,7 +103,8 @@ class Job:
 
     def target(self):
         raise NotImplementedError(
-            f"Метод {self.__class__}.target() должен выполнять логику задачи"
+            f"Method {self.__class__}.target()"
+            f" should be implemented as a generator function"
         )
 
     def stop(self):

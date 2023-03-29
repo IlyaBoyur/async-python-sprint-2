@@ -42,7 +42,7 @@ class SystemJob(Job):
                     source.unlink(missing_ok=True)
                 elif action == SystemAction.MOVE:
                     if not target:
-                        raise RuntimeError("Отсутствует путь назначения")
+                        raise RuntimeError("No target path provided")
                     target, *_ = target
                     source = pathlib.Path(source)
                     source.rename(target)
