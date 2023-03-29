@@ -9,7 +9,9 @@ from scheduler import Scheduler
 
 
 class PassableTargetJob(Job):
-    def __init__(self, target: Callable = None, args: list[Any] = None, **kwargs):
+    def __init__(
+        self, target: Callable = None, args: list[Any] = None, **kwargs
+    ):
         self.new_target = target
         self.args = args
         super().__init__(**kwargs)
@@ -66,13 +68,15 @@ class TestConveyorJob:
         scheduler.run()
         for job in [
             PassableTargetJob(target=source, args=(queue_in,)),
-            PassableTargetJob(target=processor, args=(queue_in, queue_out, lambda x: x**2)),
+            PassableTargetJob(
+                target=processor, args=(queue_in, queue_out, lambda x: x**2)
+            ),
             PassableTargetJob(target=target, args=(queue_out, self.TEST_FILE)),
         ]:
             scheduler.schedule(job)
         scheduler.join()
 
         with open(self.TEST_FILE) as file:
-            assert sum(int(value.strip()) for value in file.readlines()) == sum(
-                x**2 for x in range(10)
-            )
+            assert sum(
+                int(value.strip()) for value in file.readlines()
+            ) == sum(x**2 for x in range(10))

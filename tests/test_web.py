@@ -37,13 +37,13 @@ class TestWebJob:
     def test_queue(self):
         import json
 
-        CITIES = {
-            "MOSCOW": "https://code.s3.yandex.net/async-module/moscow-response.json",
-            "PARIS": "https://code.s3.yandex.net/async-module/paris-response.json",
-            "LONDON": "https://code.s3.yandex.net/async-module/london-response.json",
-        }
+        CITIES = [
+            "https://code.s3.yandex.net/async-module/moscow-response.json",
+            "https://code.s3.yandex.net/async-module/paris-response.json",
+            "https://code.s3.yandex.net/async-module/london-response.json",
+        ]
         test_queue = Queue()
-        job = WebJob(urls=CITIES.values(), queue=test_queue)
+        job = WebJob(urls=CITIES, queue=test_queue)
         scheduler = Scheduler(pool_size=3)
         scheduler.run()
         scheduler.schedule(job)

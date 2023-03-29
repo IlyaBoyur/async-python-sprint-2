@@ -26,7 +26,9 @@ class TestFileJob:
 
         scheduler = Scheduler()
         scheduler.run()
-        job = FileJob(max_working_time=3, actions=[["w", "file.txt"]], queue=queue)
+        job = FileJob(
+            max_working_time=3, actions=[("w", "file.txt")], queue=queue
+        )
         scheduler.schedule(job)
         scheduler.join()
 
@@ -40,7 +42,9 @@ class TestFileJob:
 
         scheduler = Scheduler()
         scheduler.run()
-        job = FileJob(max_working_time=3, actions=[["r", "file.txt"]], queue=queue)
+        job = FileJob(
+            max_working_time=3, actions=[("r", "file.txt")], queue=queue
+        )
         scheduler.schedule(job)
         scheduler.join()
 

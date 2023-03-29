@@ -32,7 +32,6 @@ class Job:
         dependencies: list[Self] = None,
         **kwargs,
     ):
-
         self.start_at = start_at
         self.max_working_time = max_working_time
         self.tries = tries
@@ -77,7 +76,8 @@ class Job:
             result = func(self, *args, **kwargs)
             timed = time.time() - start
             logger.debug(
-                f"Function {self.__class__}.{func.__name__} completed in {timed} seconds"
+                f"Function {self.__class__}.{func.__name__}"
+                f" completed in {timed} seconds"
             )
             self.time_since_start += timed
             return result

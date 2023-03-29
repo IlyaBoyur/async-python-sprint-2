@@ -10,11 +10,7 @@ logger = logging.getLogger(__name__)
 
 class FileJob(Job):
     def __init__(
-        self,
-        actions: list[tuple[str, str, Any]],
-        queue: Queue,
-        *args,
-        **kwargs,
+        self, actions: list[tuple[str, Any]], queue: Queue, *args, **kwargs
     ):
         super().__init__(*args, **kwargs)
         self.actions = actions
