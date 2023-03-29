@@ -1,7 +1,5 @@
 from queue import Queue
 
-import pytest
-
 from jobs import WebJob
 from scheduler import Scheduler
 
