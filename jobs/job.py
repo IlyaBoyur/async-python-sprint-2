@@ -64,7 +64,7 @@ class Job:
                 self.time_start + timedelta(seconds=self.time_since_start)
                 > self.time_timeout
             ):
-                logger.info("Превышено допустимое время выполнения")
+                logger.info("Execution time exceeded")
                 self.retry()
             func(self, *args, **kwargs)
 
@@ -77,7 +77,7 @@ class Job:
             result = func(self, *args, **kwargs)
             timed = time.time() - start
             logger.debug(
-                f"Функция {self.__class__}.{func.__name__} выполнилась за {timed} секунд"
+                f"Function {self.__class__}.{func.__name__} completed in {timed} seconds"
             )
             self.time_since_start += timed
             return result
@@ -133,7 +133,7 @@ class Job:
         if self.tries_left > 0:
             self.tries_left -= 1
             logger.info(
-                f"{self.__class__}: перезапуск. Осталось попыток: {self.tries_left}"
+                f"{self.__class__}: restart. Tries left: {self.tries_left}"
             )
             raise JobSoftReset()
         else:
