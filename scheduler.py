@@ -60,12 +60,12 @@ class Scheduler(metaclass=SingletonMeta):
         self.__stop_event_loop()
         for state in [*waiting, *active[self.pool_size :]]:
             job_type = state.get("job_type")
-            JobKlass = JOB_TYPES.get(job_type, Job)
-            self.tasks_wait.append(JobKlass(**state))
+            job_klass = JOB_TYPES.get(job_type, Job)
+            self.tasks_wait.append(job_klass(**state))
         for state in active[: self.pool_size]:
             job_type = state.get("job_type")
-            JobKlass = JOB_TYPES.get(job_type, Job)
-            self.tasks_active.append(JobKlass(**state))
+            job_klass = JOB_TYPES.get(job_type, Job)
+            self.tasks_active.append(job_klass(**state))
         self.__start_event_loop()
 
     def pause(self):
