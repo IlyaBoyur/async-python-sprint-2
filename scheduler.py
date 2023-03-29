@@ -32,6 +32,7 @@ class Scheduler(metaclass=SingletonMeta):
         self.event_loop_started = False
 
     def schedule(self, task: Job):
+        """Schedules task with its dependencies"""
         self.__stop_event_loop()
         if len(self.tasks_active) + len(task.dependencies) < self.pool_size:
             self.tasks_active.extend(task.dependencies)
@@ -45,44 +46,46 @@ class Scheduler(metaclass=SingletonMeta):
         self.__start_event_loop()
 
     def restart(self):
-        # read task states
+        """Restarts scheduler
+
+        Reads saved task states
+        Stops event loop
+        Restores waiting, active tasks
+        Starts event loop
+        """
         with open(self.lockfile, "r") as file:
             data = json.load(file)
         active = data.get("active", [])
         waiting = data.get("waiting", [])
-        # stop event loop
         self.__stop_event_loop()
-        # restore waiting tasks
         for state in [*waiting, *active[self.pool_size :]]:
             job_type = state.get("job_type")
             JobKlass = JOB_TYPES.get(job_type, Job)
             self.tasks_wait.append(JobKlass(**state))
-        # restore active tasks
         for state in active[: self.pool_size]:
             job_type = state.get("job_type")
             JobKlass = JOB_TYPES.get(job_type, Job)
             self.tasks_active.append(JobKlass(**state))
-        # start event loop
         self.__start_event_loop()
 
     def pause(self):
         self.__stop_event_loop()
 
     def stop(self):
-        # stop event loop
+        """Stops scheduler
+
+        Stops event loop and tasks
+        Saves waiting, active tasks states
+        Dumps tasks states to filesystem
+        Clears task queues
+        """
         self.__stop_event_loop()
-        # stop tasks
         for task in self.tasks_active:
             task.stop()
-        # save waiting tasks state
         waiting = [task.state for task in self.tasks_wait]
-        # save tasks state
         active = [task.state for task in self.tasks_active]
-        # write task states
-        data = {"active": active, "waiting": waiting}
         with open(self.lockfile, "w") as file:
-            json.dump(data, file)
-        # remove tasks
+            json.dump({"active": active, "waiting": waiting}, file)
         self.tasks_wait = []
         self.tasks_active = []
 
@@ -106,6 +109,13 @@ class Scheduler(metaclass=SingletonMeta):
             self.lock.acquire()
 
     def __event_loop(self):
+        """Scheduler Event Loop
+
+        Loops infinitely, assuming it is called as a daemon
+        Runs one iteration at a time
+        If job is done - remove job and add job from wait list
+        Extends cursor pointing to the next task
+        """
         logger.info(f"event loop: started")
         current = 0
         while True:
@@ -115,14 +125,12 @@ class Scheduler(metaclass=SingletonMeta):
                     time.sleep(ITER_SECS)
                     self.lock.acquire()
                     continue
-                # 1) run iteration in a job
                 job = self.tasks_active[current]
                 if not job.is_finished:
                     logger.info(f"event loop: job %s iteration started", job)
                     self.__process_job(job)
                     logger.info(f"event loop: job %s iteration finished", job)
                 else:
-                    # 2) if job is done - remove job and add job from wait list
                     logger.info(f"event loop: job %s finished", job)
                     self.tasks_active.pop(current)
                     if (
@@ -130,7 +138,6 @@ class Scheduler(metaclass=SingletonMeta):
                         and len(self.tasks_wait) > 0
                     ):
                         self.tasks_active.append(self.tasks_wait.pop())
-                # extend cursor
                 active = len(self.tasks_active)
                 current = (current + 1) % active if active > 0 else 0
 
