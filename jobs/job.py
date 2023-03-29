@@ -1,6 +1,7 @@
 import logging
 import time
 from datetime import datetime, timedelta
+from functools import wraps
 from typing import Self
 
 import pytz
@@ -47,6 +48,7 @@ class Job:
 
     @staticmethod
     def check_start_ready(func):
+        @wraps(func)
         def inner(self, *args, **kwargs):
             if self.now() < self.time_start or not all(
                 job.is_finished for job in self.dependencies
@@ -58,6 +60,7 @@ class Job:
 
     @staticmethod
     def check_timeout(func):
+        @wraps(func)
         def inner(self, *args, **kwargs):
             if self.max_working_time > 0 and (
                 self.time_start + timedelta(seconds=self.time_since_start)
@@ -71,6 +74,7 @@ class Job:
 
     @staticmethod
     def timeit(func):
+        @wraps(func)
         def inner(self, *args, **kwargs):
             start = time.time()
             result = func(self, *args, **kwargs)
