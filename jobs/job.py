@@ -80,8 +80,10 @@ class Job:
             result = func(self, *args, **kwargs)
             timed = time.time() - start
             logger.debug(
-                f"Function {self.__class__}.{func.__name__}"
-                f" completed in {timed} seconds"
+                "Function %s.%s completed in %.3f seconds",
+                self.__class__.__name__,
+                func.__name__,
+                timed,
             )
             self.time_since_start += timed
             return result
@@ -138,7 +140,9 @@ class Job:
         if self.tries_left > 0:
             self.tries_left -= 1
             logger.info(
-                f"{self.__class__}: restart. Tries left: {self.tries_left}"
+                "%s: restart. Tries left: %d",
+                self.__class__.__name__,
+                self.tries_left,
             )
             raise JobSoftReset()
         raise StopIteration()

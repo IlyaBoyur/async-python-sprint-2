@@ -114,14 +114,12 @@ class Scheduler(metaclass=SingletonMeta):
                 # 1) run iteration in a job
                 job = self.tasks_active[current]
                 if not job.is_finished:
-                    logger.info(f"event loop: iteration for job {job} started")
+                    logger.info(f"event loop: job %s iteration started", job)
                     self._process_job(job)
-                    logger.info(
-                        f"event loop: iteration for job {job} finished"
-                    )
+                    logger.info(f"event loop: job %s iteration finished", job)
                 else:
                     # 2) if job is done - remove job and add job from wait list
-                    logger.info(f"event loop: job {job} finished")
+                    logger.info(f"event loop: job %s finished", job)
                     self.tasks_active.pop(current)
                     if (
                         len(self.tasks_active) < self.pool_size

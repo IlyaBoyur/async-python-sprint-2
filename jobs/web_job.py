@@ -26,7 +26,9 @@ class WebJob(Job):
                 response = requests.get(url)
                 response.raise_for_status()
                 logger.info(
-                    f"{response.status_code}: {response.content[:100]}"
+                    f"Status: %s. Content: %s",
+                    response.status_code,
+                    response.content[:100],
                 )
                 if self.queue is not None:
                     self.queue.put(response.content)

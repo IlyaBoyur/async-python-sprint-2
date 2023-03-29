@@ -35,7 +35,7 @@ class FileJob(Job):
                     with open(file=filename, mode=filemode) as file:
                         self.queue.put(file.read())
                 else:
-                    logger.warning(f"Filemode `{filemode}` is not supported")
+                    logger.warning(f"Filemode `%s` is not supported", filemode)
             except RuntimeError as error:
                 logger.error(error)
             yield
