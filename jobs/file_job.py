@@ -1,7 +1,7 @@
 import logging
 import os
 from queue import Queue
-from typing import Any, Tuple
+from typing import Any
 
 from .job import Job
 
@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 class FileJob(Job):
     def __init__(
         self,
-        actions: list[Tuple[str, str, Any]],
+        actions: list[tuple[str, str, Any]],
         queue: Queue,
         *args,
         **kwargs,
