@@ -1,6 +1,7 @@
+import json
 from queue import Queue
 
-from jobs import WebJob
+from jobs import JobType, WebJob
 from scheduler import Scheduler
 
 URLS_DEFAULT = [
@@ -58,3 +59,24 @@ class TestWebJob:
             assert "fact" in response
             assert "yesterday" in response
             assert "forecasts" in response
+
+    def test_stop(self):
+        job = WebJob(max_working_time=3, urls=URLS_DEFAULT)
+        scheduler = Scheduler(pool_size=3)
+        scheduler.run()
+        scheduler.schedule(job)
+        scheduler.stop()
+
+        with open("scheduler.lock", "r") as file:
+            data = json.load(file)
+
+        assert len(data["active"]) == 1
+        for job in data["active"]:
+            assert job["type"] == JobType.WEB
+            body = job["task_body"]
+            assert "start_at" in body
+            assert "max_working_time" in body
+            assert "tries" in body
+            assert "dependencies" in body
+            assert "urls" in body
+            assert "queue" in body

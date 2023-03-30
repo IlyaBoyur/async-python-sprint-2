@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from jobs import InfiniteJob
+from jobs import InfiniteJob, JobType
 from scheduler import Scheduler
 
 
@@ -38,6 +38,13 @@ class TestSchedulerCommon:
 
         assert len(data["active"]) == len(jobs_active)
         assert len(data["waiting"]) == len(jobs_waiting)
+        for job in data["active"]:
+            assert job["type"] == JobType.INFINITE
+            body = job["task_body"]
+            assert "start_at" in body
+            assert "max_working_time" in body
+            assert "tries" in body
+            assert "dependencies" in body
 
     def test_restart(self, clear, prepare_lock):
         scheduler, active_jobs = prepare_lock

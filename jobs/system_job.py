@@ -1,8 +1,10 @@
 import logging
 import pathlib
-from typing import Any
+from dataclasses import dataclass
+from typing import Any, ClassVar
 
-from .job import Job
+from .constants import JobType
+from .job import Job, JobMomento
 
 
 class SystemAction:
@@ -15,14 +17,19 @@ class SystemAction:
 logger = logging.getLogger(__name__)
 
 
+@dataclass
+class SystemJobMomento(JobMomento):
+    TYPE: ClassVar[JobType] = JobType.SYSTEM
+    actions: list[list[Any]]
+
+
 class SystemJob(Job):
     def __init__(self, actions: list[list[Any]], *args, **kwargs):
-        super().__init__(*args, **kwargs)
         self.actions = actions
+        super().__init__(*args, **kwargs)
 
-    def save_state(self):
-        super().save_state()
-        self.state["job_type"] = "system_job"
+    def create_momento(self, defaults: dict[str, Any]):
+        return SystemJobMomento(**defaults, actions=self.actions)
 
     def target(self):
         try:

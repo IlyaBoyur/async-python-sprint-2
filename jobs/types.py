@@ -1,9 +1,10 @@
 from . import EmptyJob, FileJob, InfiniteJob, SystemJob, WebJob
+from .constants import JobType
 
 JOB_TYPES = {
-    "file_job": FileJob,
-    "system_job": SystemJob,
-    "web_job": WebJob,
-    "infinite_job": InfiniteJob,
-    "empty_job": EmptyJob,
+    JobType.EMPTY: EmptyJob,
+    JobType.FILE: FileJob,
+    JobType.INFINITE: InfiniteJob,
+    JobType.SYSTEM: SystemJob,
+    JobType.WEB: WebJob,
 }

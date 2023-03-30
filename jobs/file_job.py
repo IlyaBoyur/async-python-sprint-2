@@ -1,24 +1,34 @@
 import logging
 import os
+from dataclasses import dataclass
 from queue import Queue
-from typing import Any
+from typing import Any, ClassVar
 
-from .job import Job
+from .constants import JobType
+from .job import Job, JobMomento
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class FileJobMomento(JobMomento):
+    TYPE: ClassVar[JobType] = JobType.FILE
+    actions: list[tuple[str, Any]]
+    queue: Queue
 
 
 class FileJob(Job):
     def __init__(
         self, actions: list[tuple[str, Any]], queue: Queue, *args, **kwargs
     ):
-        super().__init__(*args, **kwargs)
         self.actions = actions
         self.queue = queue
+        super().__init__(*args, **kwargs)
 
-    def save_state(self):
-        super().save_state()
-        self.state["job_type"] = "file_job"
+    def create_momento(self, defaults: dict[str, Any]):
+        return FileJobMomento(
+            **defaults, actions=self.actions, queue=self.queue
+        )
 
     def target(self):
         for filemode, filename in self.actions:

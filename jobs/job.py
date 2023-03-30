@@ -1,10 +1,13 @@
 import logging
 import time
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from functools import wraps
-from typing import Self
+from typing import Any, ClassVar, Self
 
 import pytz
+
+from .constants import JobType
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +22,15 @@ class JobNotReady(RuntimeError):
     """Job is scheduled but it is not ready to start"""
 
     pass
+
+
+@dataclass
+class JobMomento:
+    TYPE: ClassVar[JobType]
+    start_at: datetime | None
+    max_working_time: int
+    tries: int
+    dependencies: list[Self]
 
 
 class Job:
@@ -41,6 +53,18 @@ class Job:
         # Prepare to run
         self.tries_left = self.tries
         self.soft_reset()
+
+    @classmethod
+    def from_momento(cls, momento: JobMomento):
+        instance = cls(**momento.__dict__)
+        return instance
+
+    def create_momento(self, defaults: dict[str, Any]):
+        """Controls job momento creation"""
+        return JobMomento(**defaults)
+
+    def serialize(self):
+        return {"type": self._state.TYPE, "task_body": self._state.__dict__}
 
     @staticmethod
     def now():
@@ -98,8 +122,10 @@ class Job:
             self.soft_reset()
         except StopIteration:
             self.is_finished = True
+        except Exception as e:
+            print(e)
         finally:
-            self.save_state()
+            self._save_state()
 
     @timeit
     @check_start_ready
@@ -114,17 +140,19 @@ class Job:
         )
 
     def stop(self):
-        self.save_state()
+        self._save_state()
         self.is_finished = True
 
-    def save_state(self):
-        self.state = dict(
+    def _save_state(self):
+        """Prepare state type and freeze job state"""
+        defaults = dict(
             start_at=self.start_at,
             max_working_time=self.max_working_time,
             tries=self.tries,
             dependencies=self.dependencies or None,
-            **self.kwargs,
         )
+        self._state = self.create_momento(defaults)
+        logger.info(f"self._state: {self._state}")
 
     def soft_reset(self):
         self.coro = self.target()
@@ -133,7 +161,7 @@ class Job:
         self.time_timeout = self.time_start + timedelta(
             seconds=self.max_working_time
         )
-        self.state = None
+        self._save_state()
         self.is_finished = False
 
     def retry(self):
@@ -148,23 +176,31 @@ class Job:
         raise StopIteration()
 
 
+@dataclass
+class EmptyJobMomento(JobMomento):
+    TYPE: ClassVar[JobType] = JobType.EMPTY
+
+
 class EmptyJob(Job):
     """Empty Job which does nothing"""
 
-    def save_state(self):
-        super().save_state()
-        self.state["job_type"] = "empty_job"
+    def create_momento(self, defaults: dict[str, Any]):
+        return EmptyJobMomento(**defaults)
 
     def target(self):
         yield
 
 
+@dataclass
+class InfiniteJobMomento(JobMomento):
+    TYPE: ClassVar[JobType] = JobType.INFINITE
+
+
 class InfiniteJob(Job):
     """Empty Job which iterates infinitely"""
 
-    def save_state(self):
-        super().save_state()
-        self.state["job_type"] = "infinite_job"
+    def create_momento(self, defaults: dict[str, Any]):
+        return InfiniteJobMomento(**defaults)
 
     def target(self):
         while True:

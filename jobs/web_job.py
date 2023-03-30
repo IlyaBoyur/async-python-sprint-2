@@ -1,24 +1,33 @@
 import logging
+from dataclasses import dataclass
 from queue import Queue
+from typing import Any, ClassVar
 
 import requests
 
-from .job import Job
+from .constants import JobType
+from .job import Job, JobMomento
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class WebJobMomento(JobMomento):
+    TYPE: ClassVar[JobType] = JobType.WEB
+    urls: list[str]
+    queue: Queue
 
 
 class WebJob(Job):
     def __init__(
         self, urls: list[str] = None, queue: Queue = None, *args, **kwargs
     ):
-        super().__init__(*args, **kwargs)
         self.urls = urls or []
         self.queue = queue
+        super().__init__(*args, **kwargs)
 
-    def save_state(self):
-        super().save_state()
-        self.state["job_type"] = "web_job"
+    def create_momento(self, defaults: dict[str, Any]):
+        return WebJobMomento(**defaults, urls=self.urls, queue=self.queue)
 
     def target(self):
         try:

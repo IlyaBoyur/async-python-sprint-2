@@ -1,3 +1,4 @@
+from .constants import JobType
 from .file_job import FileJob
 from .job import EmptyJob, InfiniteJob, Job
 from .system_job import SystemAction, SystemJob

@@ -59,11 +59,11 @@ class Scheduler(metaclass=SingletonMeta):
         waiting = data.get("waiting", [])
         self.__stop_event_loop()
         for state in [*waiting, *active[self.pool_size :]]:
-            job_type = state.get("job_type")
+            job_type = state.get("type")
             job_klass = JOB_TYPES.get(job_type, Job)
             self.tasks_wait.append(job_klass(**state))
         for state in active[: self.pool_size]:
-            job_type = state.get("job_type")
+            job_type = state.get("type")
             job_klass = JOB_TYPES.get(job_type, Job)
             self.tasks_active.append(job_klass(**state))
         self.__start_event_loop()
@@ -82,8 +82,8 @@ class Scheduler(metaclass=SingletonMeta):
         self.__stop_event_loop()
         for task in self.tasks_active:
             task.stop()
-        waiting = [task.state for task in self.tasks_wait]
-        active = [task.state for task in self.tasks_active]
+        waiting = [task.serialize() for task in self.tasks_wait]
+        active = [task.serialize() for task in self.tasks_active]
         with open(self.lockfile, "w") as file:
             json.dump({"active": active, "waiting": waiting}, file)
         self.tasks_wait = []
@@ -103,10 +103,12 @@ class Scheduler(metaclass=SingletonMeta):
             self.event_loop_started = True
         if self.lock.locked():
             self.lock.release()
+            logger.info("event loop: started")
 
     def __stop_event_loop(self):
         if not self.lock.locked():
             self.lock.acquire()
+            logger.info("event loop: stopped")
 
     def __event_loop(self):
         """Scheduler Event Loop
@@ -116,7 +118,7 @@ class Scheduler(metaclass=SingletonMeta):
         If job is done - remove job and add job from wait list
         Extends cursor pointing to the next task
         """
-        logger.info(f"event loop: started")
+        logger.info(f"event loop: started for the first time")
         current = 0
         while True:
             with self.lock:
