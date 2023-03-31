@@ -122,8 +122,8 @@ class Job:
             self.soft_reset()
         except StopIteration:
             self.is_finished = True
-        except Exception as e:
-            print(e)
+        except Exception as error:
+            logger.exception(error)
         finally:
             self._save_state()
 
